@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Smart Business Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --g900:#14532d;--g800:#166534;--g700:#15803d;--g600:#16a34a;
+  --g500:#22c55e;--g400:#4ade80;--g300:#86efac;--g200:#bbf7d0;
+  --g100:#dcfce7;--g50:#f0fdf4;
+  --white:#fff;
+  --gr50:#f9fafb;--gr100:#f3f4f6;--gr200:#e5e7eb;--gr300:#d1d5db;
+  --gr400:#9ca3af;--gr500:#6b7280;--gr600:#4b5563;--gr700:#374151;--gr800:#1f2937;
+  --red:#ef4444;--red100:#fee2e2;--amb:#fef3c7;
+  --font:'Sora',sans-serif;--mono:'DM Mono',monospace;
+  --r:14px;--rs:8px;--sh:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(22,163,74,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--font);background:var(--white);color:var(--gr800);min-height:100dvh;overflow-x:hidden;padding-bottom:80px;}
+
+/* ── OVERLAY SCREENS ── */
+.screen{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:24px 16px 40px;}
+.screen.hidden{display:none;}
+
+/* ── REGISTER SCREEN ── */
+.reg-screen{background:linear-gradient(160deg,var(--g800) 0%,var(--g600) 50%,var(--g400) 100%);}
+.reg-logo{width:72px;height:72px;background:rgba(255,255,255,.15);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:36px;margin:20px auto 12px;backdrop-filter:blur(8px);}
+.reg-tagline{color:rgba(255,255,255,.8);font-size:13px;text-align:center;margin-bottom:6px;}
+.reg-title{color:var(--white);font-size:26px;font-weight:800;text-align:center;letter-spacing:-.5px;margin-bottom:4px;}
+.reg-sub{color:rgba(255,255,255,.7);font-size:12px;text-align:center;margin-bottom:24px;}
+.trial-pill{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);color:var(--white);font-size:11px;font-weight:700;padding:6px 14px;border-radius:50px;text-align:center;margin-bottom:20px;backdrop-filter:blur(6px);}
+
+.reg-card{background:var(--white);border-radius:20px;padding:24px 20px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.reg-card-title{font-size:17px;font-weight:800;color:var(--g900);margin-bottom:4px;}
+.reg-card-sub{font-size:12px;color:var(--gr500);margin-bottom:20px;}
+.rfield{margin-bottom:14px;}
+.rfield label{display:block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--g800);margin-bottom:5px;}
+.rfield input,.rfield select{width:100%;background:var(--gr50);border:1.5px solid var(--gr200);border-radius:var(--rs);padding:11px 14px;font-family:var(--font);font-size:14px;color:var(--gr800);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none;}
+.rfield input:focus,.rfield select:focus{border-color:var(--g500);box-shadow:0 0 0 3px rgba(34,197,94,.15);background:var(--white);}
+.rfield input::placeholder{color:var(--gr300);}
+.rfield-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.reg-btn{width:100%;background:var(--g700);color:var(--white);border:none;border-radius:var(--rs);padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:background .2s,transform .15s;margin-top:4px;box-shadow:0 4px 14px rgba(22,101,52,.3);}
+.reg-btn:active{background:var(--g800);transform:scale(.98);}
+.reg-terms{font-size:11px;color:var(--gr400);text-align:center;margin-top:14px;line-height:1.6;}
+.reg-terms a{color:var(--g700);text-decoration:none;font-weight:600;}
+
+/* ── PAYWALL SCREEN ── */
+.pay-screen{background:var(--gr50);}
+.pay-top{background:linear-gradient(135deg,var(--g800),var(--g500));width:100%;max-width:440px;border-radius:20px;padding:30px 24px 24px;text-align:center;margin-bottom:20px;box-shadow:0 12px 40px rgba(22,101,52,.3);}
+.pay-icon{font-size:48px;margin-bottom:12px;}
+.pay-top h2{color:var(--white);font-size:24px;font-weight:800;letter-spacing:-.4px;margin-bottom:6px;}
+.pay-top p{color:rgba(255,255,255,.8);font-size:13px;line-height:1.6;}
+.pay-price{background:rgba(255,255,255,.15);border-radius:12px;padding:14px 20px;margin-top:16px;display:inline-block;border:1px solid rgba(255,255,255,.25);}
+.pay-price .amount{font-size:36px;font-weight:800;color:var(--white);font-family:var(--mono);letter-spacing:-1px;}
+.pay-price .period{font-size:13px;color:rgba(255,255,255,.7);margin-top:2px;}
+.pay-card{background:var(--white);border-radius:20px;padding:22px 20px;width:100%;max-width:440px;box-shadow:var(--sh);margin-bottom:16px;}
+.pay-features{list-style:none;margin-bottom:20px;}
+.pay-features li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--gr100);font-size:13px;color:var(--gr700);}
+.pay-features li:last-child{border-bottom:none;}
+.pay-features li .fi{font-size:16px;flex-shrink:0;margin-top:1px;}
+.pay-btn{width:100%;background:var(--g700);color:var(--white);border:none;border-radius:var(--rs);padding:15px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:background .2s,transform .15s;box-shadow:0 4px 14px rgba(22,101,52,.3);display:flex;align-items:center;justify-content:center;gap:8px;}
+.pay-btn:active{background:var(--g800);transform:scale(.98);}
+.pay-secure{font-size:11px;color:var(--gr400);text-align:center;margin-top:12px;}
+.pay-confirm{width:100%;background:var(--gr50);color:var(--g700);border:1.5px solid var(--g200);border-radius:var(--rs);padding:12px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:10px;text-align:center;}
+.pay-confirm:active{background:var(--g50);}
+.pay-logout{font-size:12px;color:var(--gr400);text-align:center;margin-top:14px;cursor:pointer;text-decoration:underline;}
+
+/* ── TRIAL BANNER ── */
+.trial-banner{background:linear-gradient(90deg,var(--g700),var(--g500));color:var(--white);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;font-weight:600;}
+.trial-banner.hidden{display:none;}
+.trial-banner .tb-days{font-family:var(--mono);font-size:14px;font-weight:800;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:20px;}
+.trial-banner .tb-sub{font-size:11px;color:rgba(255,255,255,.8);font-weight:400;}
+.trial-banner .tb-btn{background:var(--white);color:var(--g800);font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer;white-space:nowrap;flex-shrink:0;border:none;font-family:var(--font);}
+
+/* ── HEADER ── */
+.hdr{background:var(--g800);padding:14px 16px 12px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.2);}
+.hdr-brand{display:flex;align-items:center;gap:10px;}
+.hdr-logo{width:34px;height:34px;background:var(--g400);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.hdr h1{font-size:14px;font-weight:700;color:var(--white);letter-spacing:-.2px;line-height:1.2;}
+.hdr h1 span{display:block;font-size:10px;font-weight:400;color:var(--g300);}
+.hdr-user{text-align:right;cursor:pointer;}
+.hdr-uname{font-size:11px;font-weight:700;color:var(--white);line-height:1.2;}
+.hdr-ubiz{font-size:10px;color:var(--g300);}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:0;right:0;height:72px;background:var(--white);border-top:1.5px solid var(--g100);display:flex;align-items:stretch;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.08);}
+.nbtn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:transparent;padding:6px 2px;font-family:var(--font);color:var(--gr400);font-size:10px;font-weight:500;transition:color .2s,background .2s;-webkit-tap-highlight-color:transparent;}
+.nbtn .ni{font-size:19px;transition:transform .2s;}
+.nbtn:active .ni{transform:scale(.88);}
+.nbtn.active{color:var(--g700);background:var(--g50);}
+
+/* ── PAGES ── */
+.page{display:none;animation:fadeUp .3s ease;}
+.page.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── SECTION HEADER ── */
+.sec-hdr{padding:18px 16px 0;margin-bottom:14px;}
+.sec-title{font-size:21px;font-weight:800;color:var(--g900);letter-spacing:-.5px;line-height:1.2;}
+.sec-sub{font-size:12px;color:var(--gr500);margin-top:3px;}
+
+/* ── ACCOUNT PAGE ── */
+.acct-card{background:linear-gradient(135deg,var(--g800),var(--g600));border-radius:20px;margin:0 16px 16px;padding:24px 20px;color:var(--white);}
+.acct-avatar{width:60px;height:60px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:12px;border:2px solid rgba(255,255,255,.3);}
+.acct-name{font-size:20px;font-weight:800;letter-spacing:-.3px;}
+.acct-biz{font-size:12px;color:rgba(255,255,255,.75);margin-top:2px;}
+.acct-badge{display:inline-block;background:rgba(255,255,255,.2);color:var(--white);font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:8px;border:1px solid rgba(255,255,255,.3);}
+.acct-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 16px;}
+.acct-info{background:var(--gr50);border:1.5px solid var(--gr200);border-radius:var(--rs);padding:12px 14px;}
+.acct-info-lbl{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--gr500);margin-bottom:4px;}
+.acct-info-val{font-size:13px;font-weight:600;color:var(--gr800);}
+.acct-section{margin:0 16px 16px;}
+.acct-section-title{font-size:12px;font-weight:700;color:var(--gr600);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;}
+.acct-row{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:var(--white);border:1.5px solid var(--gr100);border-radius:var(--rs);margin-bottom:8px;cursor:pointer;transition:background .15s;}
+.acct-row:active{background:var(--g50);}
+.acct-row-left{display:flex;align-items:center;gap:10px;}
+.acct-row-icon{font-size:18px;}
+.acct-row-label{font-size:13px;font-weight:600;color:var(--gr800);}
+.acct-row-sub{font-size:11px;color:var(--gr500);}
+.acct-row-arrow{color:var(--gr300);font-size:14px;}
+.sub-status-bar{background:var(--g50);border:1.5px solid var(--g200);border-radius:var(--rs);padding:14px 16px;margin:0 16px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.sub-status-bar .ss-left{flex:1;}
+.sub-status-bar .ss-label{font-size:11px;font-weight:700;color:var(--g800);text-transform:uppercase;letter-spacing:.4px;}
+.sub-status-bar .ss-val{font-size:13px;font-weight:600;color:var(--gr700);margin-top:2px;}
+.sub-status-bar .ss-btn{background:var(--g700);color:var(--white);border:none;border-radius:6px;padding:8px 14px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.logout-btn{width:calc(100% - 32px);margin:0 16px 20px;background:var(--red100);color:var(--red);border:1.5px solid #fca5a5;border-radius:var(--rs);padding:13px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;}
+
+/* ── DASHBOARD CARDS ── */
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px;margin-bottom:18px;}
+.dcard{background:var(--white);border:1.5px solid var(--g100);border-radius:var(--r);padding:15px 13px;box-shadow:var(--sh);}
+.dcard.full{grid-column:1/-1;}
+.dcard.hero{background:linear-gradient(135deg,var(--g700),var(--g500));border-color:transparent;}
+.dcard.accent{background:var(--g50);border-color:var(--g200);}
+.clbl{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gr500);margin-bottom:5px;}
+.dcard.hero .clbl{color:rgba(255,255,255,.75);}
+.cval{font-size:21px;font-weight:800;color:var(--g800);font-family:var(--mono);letter-spacing:-1px;line-height:1;}
+.dcard.hero .cval{color:var(--white);font-size:25px;}
+.csub{font-size:10px;color:var(--gr400);margin-top:4px;font-weight:500;}
+.dcard.hero .csub{color:rgba(255,255,255,.65);}
+.pos{color:var(--g600)!important;}
+.neg{color:var(--red)!important;}
+
+/* ── ALERTS ── */
+.awrap{padding:0 16px;margin-bottom:18px;}
+.atitle{font-size:13px;font-weight:700;color:var(--gr700);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.abadge{background:var(--red);color:var(--white);font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;}
+.aitem{background:var(--red100);border:1.5px solid #fca5a5;border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.ainame{font-size:13px;font-weight:600;color:var(--gr800);}
+.aicat{font-size:11px;color:var(--gr500);}
+.aqty{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--red);background:white;padding:3px 8px;border-radius:6px;border:1px solid #fca5a5;white-space:nowrap;}
+
+/* ── TOP SELLERS ── */
+.tsell{padding:0 16px;margin-bottom:18px;}
+.srow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gr100);}
+.srank{width:26px;height:26px;border-radius:8px;background:var(--g100);color:var(--g800);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.srank.gold{background:var(--amb);color:#92400e;}
+.sname{font-size:13px;font-weight:600;color:var(--gr800);flex:1;}
+.srev{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--g700);}
+
+/* ── FORM PANEL ── */
+.fpanel{background:var(--g50);border:1.5px solid var(--g200);border-radius:var(--r);padding:18px 16px;margin:0 16px 18px;display:none;}
+.fpanel.open{display:block;animation:fadeUp .25s ease;}
+.ftitle{font-size:15px;font-weight:700;color:var(--g800);margin-bottom:14px;}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.fgrid .full{grid-column:1/-1;}
+.field label{display:block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--g800);margin-bottom:5px;}
+.field input,.field select{width:100%;background:var(--white);border:1.5px solid var(--g200);border-radius:var(--rs);padding:10px 12px;font-family:var(--font);font-size:14px;color:var(--gr800);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none;}
+.field input:focus,.field select:focus{border-color:var(--g500);box-shadow:0 0 0 3px rgba(34,197,94,.15);}
+.field input::placeholder{color:var(--gr300);}
+.factions{display:flex;gap:10px;margin-top:14px;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 20px;border-radius:var(--rs);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.btn-p{background:var(--g700);color:var(--white);box-shadow:0 2px 8px rgba(22,101,52,.25);}
+.btn-p:active{background:var(--g800);transform:scale(.97);}
+.btn-ghost{background:transparent;color:var(--gr500);font-size:13px;padding:8px 14px;}
+.btn-del{background:var(--red100);color:var(--red);border:1.5px solid #fca5a5;padding:5px 10px;font-size:11px;font-weight:700;border-radius:6px;cursor:pointer;font-family:var(--font);}
+.btn-sm{padding:8px 14px;font-size:12px;}
+.addrow{margin:0 16px 12px;display:flex;align-items:center;gap:10px;}
+.sbadge{font-size:12px;color:var(--g700);font-weight:600;font-family:var(--mono);}
+.rbadge{font-size:12px;color:var(--red);font-weight:600;font-family:var(--mono);}
+
+/* ── TABLE ── */
+.twrap{margin:0 16px 22px;border-radius:var(--r);border:1.5px solid var(--gr100);overflow:hidden;box-shadow:var(--sh);}
+.tscroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--g800);}
+thead th{padding:10px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--g200);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--gr100);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--g50);}
+tbody td{padding:10px 12px;color:var(--gr700);vertical-align:middle;}
+.mono{font-family:var(--mono);font-size:12px;}
+.tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.tg{background:var(--g100);color:var(--g800);}
+.tr{background:var(--red100);color:#b91c1c;}
+.ta{background:var(--amb);color:#92400e;}
+.tgr{background:var(--gr100);color:var(--gr600);}
+.empty{text-align:center;padding:36px 20px;color:var(--gr400);}
+.empty .ei{font-size:38px;margin-bottom:8px;}
+.empty p{font-size:13px;}
+
+/* ── SEARCH ── */
+.sbar{margin:0 16px 12px;position:relative;}
+.sbar input{width:100%;background:var(--gr50);border:1.5px solid var(--gr200);border-radius:50px;padding:10px 16px 10px 40px;font-family:var(--font);font-size:14px;color:var(--gr800);outline:none;transition:border-color .2s;}
+.sbar input:focus{border-color:var(--g400);background:var(--white);}
+.sbar .si{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--gr400);pointer-events:none;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--g800);color:var(--white);padding:12px 22px;border-radius:50px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(22,163,74,.2);opacity:0;transition:all .3s ease;z-index:999;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--g300);border-radius:4px;}
+
+/* ── DESKTOP ── */
+@media(min-width:900px){
+  body{max-width:100%;display:grid;grid-template-columns:76px 1fr;grid-template-rows:auto auto 1fr;min-height:100dvh;padding-bottom:0;}
+  .trial-banner{grid-column:1/-1;}
+  .hdr{grid-column:1/-1;}
+  .bnav{position:fixed;left:0;top:auto;bottom:0;right:auto;width:76px;height:calc(100dvh - 120px);top:120px;flex-direction:column;border-top:none;border-right:1.5px solid var(--g100);transform:none;box-shadow:2px 0 16px rgba(0,0,0,.05);padding:12px 0;}
+  .nbtn{flex:0;width:100%;padding:13px 4px;font-size:9px;}
+  #content{grid-column:2;grid-row:3;overflow-y:auto;}
+  .dgrid{grid-template-columns:repeat(3,1fr);}
+  .dcard.hero{grid-column:span 2;}
+  .fgrid{grid-template-columns:repeat(3,1fr);}
+  .reg-screen,.pay-screen{padding:40px 24px 60px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════
+     REGISTRATION SCREEN
+════════════════════════════════ -->
+<div class="screen reg-screen" id="screenReg">
+  <div class="reg-logo">&#128202;</div>
+  <div class="reg-title">Smart Business Tracker</div>
+  <div class="reg-tagline">For Nigerian Entrepreneurs</div>
+  <div class="trial-pill">&#127381; 3 Days FREE Trial &mdash; No card needed to start</div>
+
+  <div class="reg-card">
+    <div class="reg-card-title">Create Your Account</div>
+    <div class="reg-card-sub">Set up your business profile to get started</div>
+
+    <div class="rfield">
+      <label>Business Name *</label>
+      <input type="text" id="r_bizname" placeholder="e.g. Amaka's Boutique"/>
+    </div>
+    <div class="rfield-row">
+      <div class="rfield">
+        <label>Owner's Full Name *</label>
+        <input type="text" id="r_name" placeholder="e.g. Amaka Obi"/>
+      </div>
+      <div class="rfield">
+        <label>Business Type *</label>
+        <select id="r_type">
+          <option value="">-- Select --</option>
+          <option>Market Vendor</option>
+          <option>Boutique Owner</option>
+          <option>Food Business</option>
+          <option>Online Seller</option>
+          <option>Mini Importer</option>
+          <option>Side Hustler</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="rfield-row">
+      <div class="rfield">
+        <label>Phone Number *</label>
+        <input type="tel" id="r_phone" placeholder="+234 800 000 0000"/>
+      </div>
+      <div class="rfield">
+        <label>City / Location</label>
+        <input type="text" id="r_city" placeholder="e.g. Lagos"/>
+      </div>
+    </div>
+    <div class="rfield">
+      <label>Email Address</label>
+      <input type="email" id="r_email" placeholder="you@email.com"/>
+    </div>
+    <div class="rfield">
+      <label>Business Description (optional)</label>
+      <input type="text" id="r_desc" placeholder="Brief description of what you sell"/>
+    </div>
+    <div class="rfield">
+      <label>Create a PIN (4 digits) *</label>
+      <input type="password" id="r_pin" maxlength="4" placeholder="e.g. 1234" inputmode="numeric" pattern="[0-9]*"/>
+    </div>
+
+    <button class="reg-btn" onclick="registerUser()">
+      Start My Free 3-Day Trial &#8594;
+    </button>
+
+    <div class="reg-terms">
+      By registering, you agree to our Terms of Use.<br/>
+      After your free trial, a monthly subscription of <strong>&#8358;5,000</strong> applies.<br/>
+      Payments are processed securely via <a href="https://paystack.com" target="_blank">Paystack</a>.
+    </div>
+
+    <div style="text-align:center;margin-top:16px;font-size:12px;color:var(--gr500);">
+      Already have an account? <span style="color:var(--g700);font-weight:700;cursor:pointer" onclick="showLoginForm()">Sign In</span>
+    </div>
+
+    <!-- LOGIN MINI FORM (hidden by default) -->
+    <div id="loginForm" style="display:none;border-top:1.5px solid var(--gr100);margin-top:16px;padding-top:16px;">
+      <div class="reg-card-title" style="margin-bottom:4px">Welcome Back</div>
+      <div class="reg-card-sub">Enter your phone number and PIN</div>
+      <div class="rfield"><label>Phone Number</label><input type="tel" id="l_phone" placeholder="+234 800 000 0000"/></div>
+      <div class="rfield"><label>PIN</label><input type="password" id="l_pin" maxlength="4" placeholder="4-digit PIN" inputmode="numeric"/></div>
+      <button class="reg-btn" style="margin-top:0" onclick="loginUser()">Sign In &#8594;</button>
+      <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--gr500);cursor:pointer" onclick="hideLoginForm()">
+        Back to Registration
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     PAYWALL SCREEN
+════════════════════════════════ -->
+<div class="screen pay-screen hidden" id="screenPay">
+  <div class="pay-top">
+    <div class="pay-icon">&#128274;</div>
+    <h2>Trial Period Ended</h2>
+    <p>Your 3-day free trial has expired. Subscribe now to continue tracking your business with Smart Business Tracker.</p>
+    <div class="pay-price">
+      <div class="amount">&#8358;5,000</div>
+      <div class="period">per month &bull; Cancel anytime</div>
+    </div>
+  </div>
+
+  <div class="pay-card">
+    <ul class="pay-features">
+      <li><span class="fi">&#128202;</span><span>Full Dashboard with live profit overview</span></li>
+      <li><span class="fi">&#128722;</span><span>Unlimited Sales tracking &amp; history</span></li>
+      <li><span class="fi">&#128230;</span><span>Inventory manager with restock alerts</span></li>
+      <li><span class="fi">&#128184;</span><span>Expense tracker &mdash; see your real net profit</span></li>
+      <li><span class="fi">&#128101;</span><span>Customer tracker to grow repeat sales</span></li>
+      <li><span class="fi">&#128241;</span><span>Mobile &amp; desktop friendly</span></li>
+    </ul>
+
+    <button class="pay-btn" onclick="goToPaystack()">
+      <span>&#128274;</span> Subscribe via Paystack &mdash; &#8358;5,000/month
+    </button>
+    <div class="pay-secure">&#128274; Payments secured by Paystack &bull; Nigerian bank cards &amp; transfers accepted</div>
+
+    <button class="pay-confirm" onclick="confirmPayment()">
+      I have completed payment &mdash; Activate my account
+    </button>
+  </div>
+  <div class="pay-logout" onclick="logoutUser()">Sign out / Switch account</div>
+</div>
+
+<!-- ════════════════════════════════
+     MAIN APP
+════════════════════════════════ -->
+<div id="appShell" style="display:none">
+
+  <!-- Trial Banner -->
+  <div class="trial-banner hidden" id="trialBanner">
+    <div>
+      <div>Free Trial &mdash; <span class="tb-days" id="trialDaysLeft">3</span> days left</div>
+      <div class="tb-sub">Subscribe to keep full access after trial</div>
+    </div>
+    <button class="tb-btn" onclick="showPaywall()">Subscribe &#8358;5K</button>
+  </div>
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-logo">&#128202;</div>
+      <h1 id="appTitle">Smart Business Tracker<span id="appBizName">Loading...</span></h1>
+    </div>
+    <div class="hdr-user" onclick="gotoPage('account',document.querySelector('.nbtn:last-child'))">
+      <div class="hdr-uname" id="hdrUserName"></div>
+      <div class="hdr-ubiz" id="hdrDate"></div>
+    </div>
+  </header>
+
+  <!-- Bottom Nav -->
+  <nav class="bnav">
+    <button class="nbtn active" onclick="gotoPage('dashboard',this)"><span class="ni">&#127968;</span>Dashboard</button>
+    <button class="nbtn" onclick="gotoPage('sales',this)"><span class="ni">&#128722;</span>Sales</button>
+    <button class="nbtn" onclick="gotoPage('inventory',this)"><span class="ni">&#128230;</span>Stock</button>
+    <button class="nbtn" onclick="gotoPage('expenses',this)"><span class="ni">&#128184;</span>Expenses</button>
+    <button class="nbtn" onclick="gotoPage('account',this)"><span class="ni">&#128101;</span>Account</button>
+  </nav>
+
+  <div id="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="sec-hdr"><div class="sec-title">Dashboard</div><div class="sec-sub">Live overview &middot; Auto-updates</div></div>
+      <div class="dgrid" id="dashCards"></div>
+      <div class="awrap">
+        <div class="atitle">&#128680; Low Stock Alerts <span class="abadge" id="alertCount">0</span></div>
+        <div id="alertList"></div>
+      </div>
+      <div class="tsell">
+        <div class="atitle">&#127942; Top Products by Revenue</div>
+        <div id="topList"></div>
+      </div>
+    </div>
+
+    <!-- SALES -->
+    <div class="page" id="page-sales">
+      <div class="sec-hdr"><div class="sec-title">Sales Tracker</div><div class="sec-sub">Log every sale &mdash; Revenue &amp; Profit auto-calculate</div></div>
+      <div class="addrow">
+        <button class="btn btn-p btn-sm" onclick="openForm('fSales')">+ Add Sale</button>
+        <span class="sbadge" id="salesBadge"></span>
+      </div>
+      <div class="fpanel" id="fSales">
+        <div class="ftitle">Record New Sale</div>
+        <div class="fgrid">
+          <div class="field"><label>Date</label><input type="date" id="s_date"/></div>
+          <div class="field"><label>Category</label><select id="s_cat"><option>Boutique</option><option>Food</option><option>Online</option><option>Importer</option><option>Side Hustle</option><option>Market</option><option>Other</option></select></div>
+          <div class="field full"><label>Product / Service</label><input type="text" id="s_prod" placeholder="e.g. Ankara Fabric (6 yds)"/></div>
+          <div class="field"><label>Quantity</label><input type="number" id="s_qty" min="1" placeholder="1"/></div>
+          <div class="field"><label>Cost Price (&#8358;)</label><input type="number" id="s_cost" min="0" placeholder="0"/></div>
+          <div class="field"><label>Selling Price (&#8358;)</label><input type="number" id="s_sell" min="0" placeholder="0"/></div>
+        </div>
+        <div class="factions">
+          <button class="btn btn-p" style="flex:1" onclick="addSale()">Save Sale</button>
+          <button class="btn btn-ghost" onclick="closeForm('fSales')">Cancel</button>
+        </div>
+      </div>
+      <div class="sbar"><span class="si">&#128269;</span><input type="text" placeholder="Search sales..." oninput="filterTbl('tSales',this.value,[1,3])"/></div>
+      <div class="twrap"><div class="tscroll">
+        <table><thead><tr><th>Date</th><th>Product</th><th>Qty</th><th>Category</th><th>Revenue (&#8358;)</th><th>Profit (&#8358;)</th><th></th></tr></thead>
+        <tbody id="tSales"></tbody></table>
+      </div></div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div class="page" id="page-inventory">
+      <div class="sec-hdr"><div class="sec-title">Inventory Manager</div><div class="sec-sub">Track products, prices &amp; restock alerts</div></div>
+      <div class="addrow">
+        <button class="btn btn-p btn-sm" onclick="openForm('fInv')">+ Add Product</button>
+        <span class="sbadge" id="invBadge"></span>
+      </div>
+      <div class="fpanel" id="fInv">
+        <div class="ftitle">New Product</div>
+        <div class="fgrid">
+          <div class="field full"><label>Product / Item Name</label><input type="text" id="i_name" placeholder="e.g. Ankara Fabric (6 yds)"/></div>
+          <div class="field"><label>Category</label><input type="text" id="i_cat" placeholder="e.g. Fabric"/></div>
+          <div class="field"><label>Cost Price (&#8358;)</label><input type="number" id="i_cost" min="0" placeholder="0"/></div>
+          <div class="field"><label>Selling Price (&#8358;)</label><input type="number" id="i_sell" min="0" placeholder="0"/></div>
+          <div class="field"><label>Stock Qty</label><input type="number" id="i_qty" min="0" placeholder="0"/></div>
+          <div class="field"><label>Restock Level</label><input type="number" id="i_restock" min="0" placeholder="5"/></div>
+        </div>
+        <div class="factions">
+          <button class="btn btn-p" style="flex:1" onclick="addInventory()">Save Product</button>
+          <button class="btn btn-ghost" onclick="closeForm('fInv')">Cancel</button>
+        </div>
+      </div>
+      <div class="sbar"><span class="si">&#128269;</span><input type="text" placeholder="Search inventory..." oninput="filterTbl('tInv',this.value,[0,1])"/></div>
+      <div class="twrap"><div class="tscroll">
+        <table><thead><tr><th>Product</th><th>Category</th><th>Cost (&#8358;)</th><th>Sell (&#8358;)</th><th>Qty</th><th>Min</th><th>Status</th><th></th></tr></thead>
+        <tbody id="tInv"></tbody></table>
+      </div></div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div class="page" id="page-expenses">
+      <div class="sec-hdr"><div class="sec-title">Expenses Tracker</div><div class="sec-sub">Log every cost &mdash; see your real net profit</div></div>
+      <div class="addrow">
+        <button class="btn btn-p btn-sm" onclick="openForm('fExp')">+ Add Expense</button>
+        <span class="rbadge" id="expBadge"></span>
+      </div>
+      <div class="fpanel" id="fExp">
+        <div class="ftitle">Log Expense</div>
+        <div class="fgrid">
+          <div class="field"><label>Date</label><input type="date" id="e_date"/></div>
+          <div class="field"><label>Category</label><select id="e_cat"><option>Transport</option><option>Marketing</option><option>Packaging</option><option>Utilities</option><option>Communication</option><option>Staff</option><option>Equipment</option><option>Logistics</option><option>Cost of Goods</option><option>Platform Fee</option><option>Other</option></select></div>
+          <div class="field full"><label>Description</label><input type="text" id="e_desc" placeholder="What did you spend on?"/></div>
+          <div class="field"><label>Amount (&#8358;)</label><input type="number" id="e_amt" min="0" placeholder="0"/></div>
+          <div class="field"><label>Notes (optional)</label><input type="text" id="e_notes" placeholder="e.g. Receipt #012"/></div>
+        </div>
+        <div class="factions">
+          <button class="btn btn-p" style="flex:1" onclick="addExpense()">Save Expense</button>
+          <button class="btn btn-ghost" onclick="closeForm('fExp')">Cancel</button>
+        </div>
+      </div>
+      <div class="sbar"><span class="si">&#128269;</span><input type="text" placeholder="Search expenses..." oninput="filterTbl('tExp',this.value,[1,2])"/></div>
+      <div class="twrap"><div class="tscroll">
+        <table><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount (&#8358;)</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="tExp"></tbody></table>
+      </div></div>
+    </div>
+
+    <!-- ACCOUNT -->
+    <div class="page" id="page-account">
+      <div class="sec-hdr"><div class="sec-title">My Account</div><div class="sec-sub">Profile &amp; Subscription Settings</div></div>
+      <div class="acct-card" id="acctCard"></div>
+      <div class="acct-grid" id="acctGrid"></div>
+      <div class="sub-status-bar" id="subStatusBar"></div>
+      <div class="acct-section">
+        <div class="acct-section-title">Settings</div>
+        <div class="acct-row" onclick="showPaywall()">
+          <div class="acct-row-left">
+            <span class="acct-row-icon">&#128274;</span>
+            <div><div class="acct-row-label">Subscription</div><div class="acct-row-sub">&#8358;5,000/month via Paystack</div></div>
+          </div>
+          <span class="acct-row-arrow">&#8250;</span>
+        </div>
+        <div class="acct-row" onclick="showToast('Feature coming soon!')">
+          <div class="acct-row-left">
+            <span class="acct-row-icon">&#128190;</span>
+            <div><div class="acct-row-label">Export Data</div><div class="acct-row-sub">Download your business records</div></div>
+          </div>
+          <span class="acct-row-arrow">&#8250;</span>
+        </div>
+        <div class="acct-row" onclick="showToast('Support: support@smartbiztracker.ng')">
+          <div class="acct-row-left">
+            <span class="acct-row-icon">&#128172;</span>
+            <div><div class="acct-row-label">Help &amp; Support</div><div class="acct-row-sub">Contact us for assistance</div></div>
+          </div>
+          <span class="acct-row-arrow">&#8250;</span>
+        </div>
+      </div>
+      <button class="logout-btn" onclick="logoutUser()">&#128275; Sign Out</button>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /appShell -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// CONFIG — replace with your Paystack payment link
+// ════════════════════════════════════════
+var PAYSTACK_LINK = 'https://paystack.shop/pay/r3yjcrcnfr';
+// ════════════════════════════════════════
+
+var DB = {
+  sales:[
+    {date:'2026-03-28',prod:'Plain T-Shirt (XL)',      qty:3,  cat:'Boutique',   cost:2800,sell:5500},
+    {date:'2026-03-28',prod:'Jollof Rice (plate)',     qty:12, cat:'Food',        cost:500, sell:1500},
+    {date:'2026-03-28',prod:'iPhone Case (clear)',     qty:5,  cat:'Online',      cost:350, sell:1200},
+    {date:'2026-03-27',prod:'Ankara Fabric (6 yds)',   qty:2,  cat:'Boutique',    cost:4500,sell:8500},
+    {date:'2026-03-27',prod:'Shawarma (large)',        qty:8,  cat:'Food',        cost:700, sell:2000},
+    {date:'2026-03-27',prod:'Perfume Oil (10ml)',      qty:6,  cat:'Importer',    cost:900, sell:2500},
+    {date:'2026-03-26',prod:'Body Cream (set)',        qty:4,  cat:'Side Hustle', cost:1200,sell:3500},
+    {date:'2026-03-26',prod:'Phone Screen Guard',      qty:10, cat:'Online',      cost:180, sell:800},
+    {date:'2026-03-25',prod:'Fried Rice & Chicken',   qty:7,  cat:'Food',        cost:900, sell:2500},
+    {date:'2026-03-25',prod:'Earrings Set',            qty:5,  cat:'Boutique',    cost:600, sell:1800}
+  ],
+  inventory:[
+    {name:'Heels',                cat:'Shoe',        cost:12000,sell:25000,qty:4,  restock:5},
+    {name:'Vegetable Oil (5L)',   cat:'Grocery',     cost:4200, sell:5500, qty:5,  restock:8},
+    {name:'Ankara Fabric (6 yds)',cat:'Fabric',      cost:4500, sell:8500, qty:20, restock:8},
+    {name:'Plain T-Shirt (XL)',   cat:'Clothing',    cost:2800, sell:5500, qty:15, restock:5},
+    {name:'Earrings Set',         cat:'Accessories', cost:600,  sell:1800, qty:30, restock:10},
+    {name:'Rice (50kg bag)',      cat:'Ingredients', cost:32000,sell:40000,qty:3,  restock:2},
+    {name:'iPhone Case (clear)',  cat:'Phone Acc.',  cost:350,  sell:1200, qty:50, restock:15},
+    {name:'Perfume Oil (10ml)',   cat:'Cosmetics',   cost:900,  sell:2500, qty:25, restock:10},
+    {name:'Body Cream (set)',     cat:'Cosmetics',   cost:1200, sell:3500, qty:10, restock:5},
+    {name:'Scented Candle',       cat:'Lifestyle',   cost:1800, sell:4500, qty:6,  restock:3},
+    {name:'Shawarma Ingredients', cat:'Food',        cost:8000, sell:0,    qty:4,  restock:3},
+    {name:'Cake (full)',          cat:'Baked Goods', cost:5000, sell:12000,qty:2,  restock:2}
+  ],
+  expenses:[
+    {date:'2026-03-28',desc:'Transport to market/supplier',  cat:'Transport',     amt:2500, notes:'Bike + bus'},
+    {date:'2026-03-28',desc:'Instagram / TikTok ad boost',   cat:'Marketing',     amt:5000, notes:'Product promo'},
+    {date:'2026-03-27',desc:'Restock - packaging bags',      cat:'Packaging',     amt:3000, notes:'100 nylon bags'},
+    {date:'2026-03-27',desc:'Electricity / generator fuel',  cat:'Utilities',     amt:8500, notes:'Generator diesel'},
+    {date:'2026-03-26',desc:'Phone data / internet',         cat:'Communication', amt:3500, notes:'MTN 30GB'},
+    {date:'2026-03-26',desc:'Staff / helper payment',        cat:'Staff',         amt:8000, notes:'Assistant 1 day'},
+    {date:'2026-03-25',desc:'Equipment maintenance',         cat:'Equipment',     amt:4500, notes:'Blender repair'},
+    {date:'2026-03-25',desc:'Delivery charges',              cat:'Logistics',     amt:2000, notes:'GIG logistics'},
+    {date:'2026-03-24',desc:'Raw materials / ingredients',   cat:'Cost of Goods', amt:15000,notes:'Market run'},
+    {date:'2026-03-24',desc:'Platform / marketplace fees',   cat:'Platform Fee',  amt:2500, notes:'Jumia seller fee'}
+  ]
+};
+
+// ── HELPERS ──
+function fmt(n){return '\u20a6'+Number(n||0).toLocaleString('en-NG');}
+function fmtD(d){if(!d)return '';var dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-NG',{day:'2-digit',month:'short'});}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function gv(id){return document.getElementById(id).value;}
+function clr(ids){ids.forEach(function(id){document.getElementById(id).value='';});}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2600);
+}
+
+// ── LOCAL STORAGE AUTH ──
+function saveUsers(users){localStorage.setItem('sbt_users',JSON.stringify(users));}
+function loadUsers(){try{return JSON.parse(localStorage.getItem('sbt_users'))||[];}catch(e){return[];}}
+function saveSession(user){localStorage.setItem('sbt_session',JSON.stringify(user));}
+function loadSession(){try{return JSON.parse(localStorage.getItem('sbt_session'));}catch(e){return null;}}
+function clearSession(){localStorage.removeItem('sbt_session');}
+
+function daysLeft(trialStart){
+  var start=new Date(trialStart);
+  var now=new Date();
+  var diff=3-Math.floor((now-start)/(1000*60*60*24));
+  return diff>0?diff:0;
+}
+
+function isSubscribed(user){
+  if(!user)return false;
+  if(user.subscribed)return true;
+  return false;
+}
+
+function isTrialActive(user){
+  if(!user)return false;
+  return daysLeft(user.trialStart)>0;
+}
+
+function hasAccess(user){
+  return isSubscribed(user)||isTrialActive(user);
+}
+
+// ── ROUTING ──
+function boot(){
+  var user=loadSession();
+  if(!user){
+    showScreen('screenReg');
+    return;
+  }
+  if(!hasAccess(user)){
+    showPaywall();
+    return;
+  }
+  launchApp(user);
+}
+
+function showScreen(id){
+  document.getElementById('screenReg').classList.add('hidden');
+  document.getElementById('screenPay').classList.add('hidden');
+  document.getElementById('appShell').style.display='none';
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function showPaywall(){
+  document.getElementById('screenReg').classList.add('hidden');
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('screenPay').classList.remove('hidden');
+}
+
+function launchApp(user){
+  document.getElementById('screenReg').classList.add('hidden');
+  document.getElementById('screenPay').classList.add('hidden');
+  document.getElementById('appShell').style.display='block';
+
+  // Header
+  document.getElementById('hdrUserName').textContent=user.name;
+  document.getElementById('appBizName').textContent=user.bizname;
+  document.getElementById('hdrDate').textContent=new Date().toLocaleDateString('en-NG',{weekday:'short',day:'numeric',month:'short'});
+
+  // Trial banner
+  var banner=document.getElementById('trialBanner');
+  if(!user.subscribed && isTrialActive(user)){
+    var dl=daysLeft(user.trialStart);
+    document.getElementById('trialDaysLeft').textContent=dl;
+    banner.classList.remove('hidden');
+  } else {
+    banner.classList.add('hidden');
+  }
+
+  // Account page
+  renderAccount(user);
+  renderAll();
+}
+
+// ── REGISTER ──
+function registerUser(){
+  var bizname=gv('r_bizname').trim();
+  var name=gv('r_name').trim();
+  var type=gv('r_type');
+  var phone=gv('r_phone').trim();
+  var city=gv('r_city').trim();
+  var email=gv('r_email').trim();
+  var desc=gv('r_desc').trim();
+  var pin=gv('r_pin').trim();
+
+  if(!bizname){showToast('Enter your business name');return;}
+  if(!name){showToast('Enter your full name');return;}
+  if(!type){showToast('Select a business type');return;}
+  if(!phone){showToast('Enter your phone number');return;}
+  if(!pin||pin.length<4){showToast('Create a 4-digit PIN');return;}
+
+  var users=loadUsers();
+  var exists=users.filter(function(u){return u.phone===phone;});
+  if(exists.length>0){showToast('Phone already registered. Please sign in.');showLoginForm();return;}
+
+  var user={
+    bizname:bizname,name:name,type:type,phone:phone,city:city,
+    email:email,desc:desc,pin:pin,
+    trialStart:new Date().toISOString(),
+    subscribed:false,
+    subDate:null,
+    joined:new Date().toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'})
+  };
+  users.push(user);
+  saveUsers(users);
+  saveSession(user);
+  launchApp(user);
+  showToast('Welcome, '+name.split(' ')[0]+'! Your 3-day trial has started.');
+}
+
+// ── LOGIN ──
+function showLoginForm(){
+  document.getElementById('loginForm').style.display='block';
+  document.getElementById('r_bizname').closest('.rfield').style.display='none';
+}
+function hideLoginForm(){
+  document.getElementById('loginForm').style.display='none';
+  document.getElementById('r_bizname').closest('.rfield').style.display='block';
+}
+function loginUser(){
+  var phone=gv('l_phone').trim();
+  var pin=gv('l_pin').trim();
+  if(!phone||!pin){showToast('Enter phone and PIN');return;}
+  var users=loadUsers();
+  var found=null;
+  users.forEach(function(u){if(u.phone===phone&&u.pin===pin)found=u;});
+  if(!found){showToast('Phone or PIN is incorrect');return;}
+  saveSession(found);
+  if(!hasAccess(found)){showPaywall();return;}
+  launchApp(found);
+  showToast('Welcome back, '+found.name.split(' ')[0]+'!');
+}
+
+// ── LOGOUT ──
+function logoutUser(){
+  if(confirm('Sign out of Smart Business Tracker?')){
+    clearSession();
+    showScreen('screenReg');
+  }
+}
+
+// ── PAYSTACK ──
+function goToPaystack(){
+  window.open(PAYSTACK_LINK,'_blank');
+}
+
+function confirmPayment(){
+  var user=loadSession();
+  if(!user){showPaywall();return;}
+  var code=prompt('Enter your Paystack transaction reference or confirmation code:');
+  if(!code){return;}
+  // Mark subscribed
+  user.subscribed=true;
+  user.subDate=new Date().toISOString();
+  user.subRef=code.trim();
+  // Update in users list
+  var users=loadUsers();
+  for(var i=0;i<users.length;i++){
+    if(users[i].phone===user.phone){users[i]=user;break;}
+  }
+  saveUsers(users);
+  saveSession(user);
+  launchApp(user);
+  showToast('Subscription activated! Welcome back.');
+}
+
+// ── ACCOUNT PAGE ──
+function renderAccount(user){
+  var emoji={
+    'Market Vendor':'&#128722;','Boutique Owner':'&#128247;','Food Business':'&#127829;',
+    'Online Seller':'&#128241;','Mini Importer':'&#128666;','Side Hustler':'&#128188;','Other':'&#127760;'
+  };
+  var ic=emoji[user.type]||'&#128202;';
+  var statusLabel=user.subscribed?'Active Subscriber':isTrialActive(user)?('Trial - '+daysLeft(user.trialStart)+' day(s) left'):'Trial Expired';
+  var statusColor=user.subscribed?'#16a34a':isTrialActive(user)?'#15803d':'#ef4444';
+
+  document.getElementById('acctCard').innerHTML=
+    '<div class="acct-avatar">'+ic+'</div>'+
+    '<div class="acct-name">'+esc(user.bizname)+'</div>'+
+    '<div class="acct-biz">Owned by '+esc(user.name)+'</div>'+
+    '<span class="acct-badge">'+esc(user.type||'Business')+'</span>';
+
+  document.getElementById('acctGrid').innerHTML=
+    '<div class="acct-info"><div class="acct-info-lbl">Phone</div><div class="acct-info-val">'+esc(user.phone)+'</div></div>'+
+    '<div class="acct-info"><div class="acct-info-lbl">Location</div><div class="acct-info-val">'+(esc(user.city)||'Not set')+'</div></div>'+
+    '<div class="acct-info"><div class="acct-info-lbl">Email</div><div class="acct-info-val">'+(esc(user.email)||'Not set')+'</div></div>'+
+    '<div class="acct-info"><div class="acct-info-lbl">Joined</div><div class="acct-info-val">'+esc(user.joined||'—')+'</div></div>';
+
+  document.getElementById('subStatusBar').innerHTML=
+    '<div class="ss-left">'+
+      '<div class="ss-label">Subscription Status</div>'+
+      '<div class="ss-val" style="color:'+statusColor+'">'+statusLabel+'</div>'+
+    '</div>'+
+    (user.subscribed?
+      '<button class="ss-btn" onclick="showToast(\'Subscription active until next renewal\')">Active</button>':
+      '<button class="ss-btn" onclick="showPaywall()">Subscribe &#8358;5K</button>');
+}
+
+// ── NAV ──
+function gotoPage(name,btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nbtn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  document.querySelectorAll('.fpanel').forEach(function(f){f.classList.remove('open');});
+}
+
+// ── FORMS ──
+function openForm(id){
+  var f=document.getElementById(id);
+  var wasOpen=f.classList.contains('open');
+  document.querySelectorAll('.fpanel').forEach(function(p){p.classList.remove('open');});
+  if(!wasOpen){
+    f.classList.add('open');
+    var di=f.querySelector('input[type="date"]');
+    if(di&&!di.value)di.value=todayStr();
+    setTimeout(function(){f.scrollIntoView({behavior:'smooth',block:'nearest'});},60);
+  }
+}
+function closeForm(id){document.getElementById(id).classList.remove('open');}
+function filterTbl(tbodyId,query,cols){
+  var v=query.toLowerCase();
+  document.getElementById(tbodyId).querySelectorAll('tr').forEach(function(r){
+    var txt=cols.map(function(c){return r.cells[c]?r.cells[c].textContent.toLowerCase():'';}).join(' ');
+    r.style.display=txt.indexOf(v)>=0?'':'none';
+  });
+}
+
+// ── RENDER ALL ──
+function renderAll(){renderDash();renderSales();renderInv();renderExp();}
+
+// ── DASHBOARD ──
+function renderDash(){
+  var totalRev=0,totalProfit=0;
+  DB.sales.forEach(function(r){totalRev+=r.qty*r.sell;totalProfit+=r.qty*(r.sell-r.cost);});
+  var totalExp=0;
+  DB.expenses.forEach(function(r){totalExp+=r.amt;});
+  var netProfit=totalProfit-totalExp;
+  var tod=todayStr();
+  var todRev=0;
+  DB.sales.forEach(function(r){if(r.date===tod)todRev+=r.qty*r.sell;});
+
+  var cards=[
+    {lbl:'Total Revenue',   val:fmt(totalRev),   sub:'All-time', hero:true},
+    {lbl:'Net Profit',      val:fmt(netProfit),  sub:'Revenue minus expenses', accent:true, neg:netProfit<0},
+    {lbl:"Today's Sales",   val:fmt(todRev),     sub:'Current day', accent:true},
+    {lbl:'Total Expenses',  val:fmt(totalExp),   sub:'All-time logged'},
+    {lbl:'Products',        val:String(DB.inventory.length), sub:'In inventory'},
+    {lbl:'Sales Records',   val:String(DB.sales.length), sub:'Total transactions'}
+  ];
+  var html='';
+  cards.forEach(function(c){
+    html+='<div class="dcard'+(c.hero?' full hero':'')+(c.accent?' accent':'')+'">'+
+      '<div class="clbl">'+c.lbl+'</div>'+
+      '<div class="cval'+(c.neg?' neg':'')+'">'+c.val+'</div>'+
+      '<div class="csub">'+c.sub+'</div></div>';
+  });
+  document.getElementById('dashCards').innerHTML=html;
+
+  var low=DB.inventory.filter(function(i){return i.qty<=i.restock;});
+  document.getElementById('alertCount').textContent=String(low.length);
+  if(low.length===0){
+    document.getElementById('alertList').innerHTML='<div style="font-size:13px;color:var(--g700);padding:10px 0;font-weight:600">All products are well stocked!</div>';
+  } else {
+    var ah='';
+    low.forEach(function(i){
+      ah+='<div class="aitem"><div><div class="ainame">'+esc(i.name)+'</div><div class="aicat">'+esc(i.cat)+'</div></div>'+
+        '<div class="aqty">Qty: '+i.qty+' / Min: '+i.restock+'</div></div>';
+    });
+    document.getElementById('alertList').innerHTML=ah;
+  }
+
+  var rev={};
+  DB.sales.forEach(function(r){rev[r.prod]=(rev[r.prod]||0)+r.qty*r.sell;});
+  var sorted=[];
+  Object.keys(rev).forEach(function(k){sorted.push([k,rev[k]]);});
+  sorted.sort(function(a,b){return b[1]-a[1];});
+  sorted=sorted.slice(0,5);
+  var th='';
+  sorted.forEach(function(item,i){
+    th+='<div class="srow"><div class="srank'+(i===0?' gold':'')+'">'+( i+1)+'</div>'+
+      '<div class="sname">'+esc(item[0])+'</div><div class="srev">'+fmt(item[1])+'</div></div>';
+  });
+  document.getElementById('topList').innerHTML=th||'<div style="font-size:13px;color:var(--gr400);padding:10px 0">No sales yet.</div>';
+}
+
+// ── SALES ──
+function renderSales(){
+  var total=0,html='';
+  if(DB.sales.length===0){
+    html='<tr><td colspan="7"><div class="empty"><div class="ei">&#128722;</div><p>No sales yet. Tap + Add Sale.</p></div></td></tr>';
+  } else {
+    DB.sales.forEach(function(r,i){
+      var rev=r.qty*r.sell,prof=r.qty*(r.sell-r.cost);total+=rev;
+      html+='<tr><td>'+fmtD(r.date)+'</td><td><strong>'+esc(r.prod)+'</strong></td>'+
+        '<td class="mono">'+r.qty+'</td><td><span class="tag tg">'+esc(r.cat)+'</span></td>'+
+        '<td class="mono pos">'+fmt(rev)+'</td><td class="mono '+(prof<0?'neg':'pos')+'">'+fmt(prof)+'</td>'+
+        '<td><button class="btn-del" onclick="delRow(\'sales\','+i+')">X</button></td></tr>';
+    });
+  }
+  document.getElementById('tSales').innerHTML=html;
+  document.getElementById('salesBadge').textContent='Total: '+fmt(total);
+}
+function addSale(){
+  var date=gv('s_date'),prod=gv('s_prod').trim(),qty=parseFloat(gv('s_qty')),
+      cost=parseFloat(gv('s_cost')),sell=parseFloat(gv('s_sell')),cat=gv('s_cat');
+  if(!date||!prod||!qty||!sell){showToast('Fill all required fields');return;}
+  DB.sales.unshift({date:date,prod:prod,qty:qty,cat:cat,cost:cost||0,sell:sell});
+  clr(['s_prod','s_qty','s_cost','s_sell']);closeForm('fSales');renderSales();renderDash();
+  showToast('Sale recorded!');
+}
+
+// ── INVENTORY ──
+function renderInv(){
+  var html='',low=0;
+  if(DB.inventory.length===0){
+    html='<tr><td colspan="8"><div class="empty"><div class="ei">&#128230;</div><p>No products yet. Tap + Add Product.</p></div></td></tr>';
+  } else {
+    DB.inventory.forEach(function(r,i){
+      var nr=r.qty<=r.restock;if(nr)low++;
+      html+='<tr><td><strong>'+esc(r.name)+'</strong></td><td><span class="tag tgr">'+esc(r.cat)+'</span></td>'+
+        '<td class="mono">'+fmt(r.cost)+'</td><td class="mono">'+fmt(r.sell)+'</td>'+
+        '<td class="mono '+(nr?'neg':'pos')+'">'+r.qty+'</td>'+
+        '<td class="mono" style="color:var(--gr400)">'+r.restock+'</td>'+
+        '<td><span class="tag '+(nr?'tr':'tg')+'">'+(nr?'RESTOCK':'OK')+'</span></td>'+
+        '<td><button class="btn-del" onclick="delRow(\'inventory\','+i+')">X</button></td></tr>';
+    });
+  }
+  document.getElementById('tInv').innerHTML=html;
+  document.getElementById('invBadge').textContent=low>0?(low+' low stock'):(DB.inventory.length+' products');
+}
+function addInventory(){
+  var name=gv('i_name').trim(),cat=gv('i_cat').trim(),cost=parseFloat(gv('i_cost')),
+      sell=parseFloat(gv('i_sell')),qty=parseFloat(gv('i_qty')),restock=parseFloat(gv('i_restock'))||5;
+  if(!name||!cat){showToast('Name and category required');return;}
+  DB.inventory.push({name:name,cat:cat,cost:cost||0,sell:sell||0,qty:qty||0,restock:restock});
+  clr(['i_name','i_cat','i_cost','i_sell','i_qty','i_restock']);closeForm('fInv');renderInv();renderDash();
+  showToast('Product added!');
+}
+
+// ── EXPENSES ──
+function renderExp(){
+  var total=0,html='';
+  if(DB.expenses.length===0){
+    html='<tr><td colspan="6"><div class="empty"><div class="ei">&#128184;</div><p>No expenses yet. Tap + Add Expense.</p></div></td></tr>';
+  } else {
+    DB.expenses.forEach(function(r,i){
+      total+=r.amt;
+      html+='<tr><td>'+fmtD(r.date)+'</td><td><strong>'+esc(r.desc)+'</strong></td>'+
+        '<td><span class="tag ta">'+esc(r.cat)+'</span></td>'+
+        '<td class="mono neg">'+fmt(r.amt)+'</td>'+
+        '<td style="font-size:12px;color:var(--gr500)">'+esc(r.notes||'-')+'</td>'+
+        '<td><button class="btn-del" onclick="delRow(\'expenses\','+i+')">X</button></td></tr>';
+    });
+  }
+  document.getElementById('tExp').innerHTML=html;
+  document.getElementById('expBadge').textContent='Total: '+fmt(total);
+}
+function addExpense(){
+  var date=gv('e_date'),desc=gv('e_desc').trim(),cat=gv('e_cat'),
+      amt=parseFloat(gv('e_amt')),notes=gv('e_notes').trim();
+  if(!date||!desc||!amt){showToast('Date, description & amount required');return;}
+  DB.expenses.unshift({date:date,desc:desc,cat:cat,amt:amt,notes:notes});
+  clr(['e_desc','e_amt','e_notes']);closeForm('fExp');renderExp();renderDash();
+  showToast('Expense logged!');
+}
+
+// ── DELETE ──
+function delRow(type,idx){
+  if(!confirm('Delete this record?'))return;
+  DB[type].splice(idx,1);renderAll();showToast('Record deleted');
+}
+
+// ── START ──
+boot();
+</script>
+</body>
+</html>
